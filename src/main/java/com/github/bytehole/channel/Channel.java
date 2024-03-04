@@ -1,4 +1,4 @@
-package com.github.boybeak.bytehole.channel;
+package com.github.bytehole.channel;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
