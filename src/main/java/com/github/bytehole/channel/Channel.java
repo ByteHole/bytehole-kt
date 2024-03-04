@@ -33,10 +33,10 @@ public class Channel {
             try {
                 socket.receive(packet);
             } catch (Exception e) {
-                e.printStackTrace();
+                if (isOpened()) {
+                    e.printStackTrace();
+                }
             }
-
-            System.out.println(packet.getAddress().getHostAddress());
 
             String msg = new String(packet.getData(), 0, packet.getLength());
 
