@@ -35,6 +35,8 @@ public class Channel {
             } catch (Exception e) {
                 if (isOpened()) {
                     e.printStackTrace();
+                } else {
+                    return;
                 }
             }
 
