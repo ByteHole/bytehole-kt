@@ -1,2 +1,2 @@
-# bytehole-kt
-bytehole project for kt
+# Channel
+bytehole channel project for java
