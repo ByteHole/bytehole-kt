@@ -1,5 +1,6 @@
 package com.github.bytehole.channel
 
+import com.github.bytehole.channel.handler.SimpleHandler
 import org.junit.jupiter.api.Test
 
 class TestUDPSender {
@@ -7,6 +8,8 @@ class TestUDPSender {
     companion object {
         private const val BROADCAST_IP = "255.255.255.255"
     }
+
+    private val handler = SimpleHandler()
 
     @Test
     fun testSend() {

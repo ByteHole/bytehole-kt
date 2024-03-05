@@ -14,7 +14,7 @@ class SimpleHandler : IHandler {
         executor.execute {
             while (true) {
                 val task = blockingQueue.take()
-                executor.execute(task)
+                task.run()
             }
         }
     }

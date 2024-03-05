@@ -1,9 +1,11 @@
 package com.github.bytehole.channel
 
 import com.alibaba.fastjson2.JSONObject
+import com.github.bytehole.channel.handler.IHandler
+import com.github.bytehole.channel.handler.SimpleHandler
 import java.util.UUID
 
-class ByteHole {
+open class ByteHole {
 
     companion object {
         private const val BROADCAST_IP = "255.255.255.255"
@@ -12,17 +14,21 @@ class ByteHole {
         private val MESSAGE_PREPARE_PORTS = arrayOf(3211, 3185, 4312, 9855, 1413)
     }
 
+    val debugger: IDebugger? = null
+
     private val broadcastListener = object : UDPReceiver.OnReceiveListener {
         override fun onReady() {
+            debugger?.onBroadcastReady()
             trySayHiToAll()
         }
 
-        override fun onReceive(ip: String, data: ByteArray) {
-            dispatchReceive(ip, data) { ip, event, jsonObj ->
+        override fun onReceive(fromIp: String, data: ByteArray) {
+            debugger?.onBroadcastReceived(fromIp, data)
+            dispatchReceive(fromIp, data) { event, jsonObj ->
                 when(event) {
                     EVENT_HI2A -> {
                         val messagePort = jsonObj.getIntValue("messagePort")
-                        udpSender.send(ip, messagePort, hi2You(byteHoleId, broadcastReceiver.port, messageReceiver.port))
+                        udpSender.send(fromIp, messagePort, hi2You(byteHoleId, broadcastReceiver.port, messageReceiver.port))
                     }
                 }
             }
@@ -30,10 +36,12 @@ class ByteHole {
     }
     private val messageListener = object : UDPReceiver.OnReceiveListener {
         override fun onReady() {
+            debugger?.onMessageReady()
             trySayHiToAll()
         }
 
-        override fun onReceive(ip: String, data: ByteArray) {
+        override fun onReceive(fromIp: String, data: ByteArray) {
+            debugger?.onMessageReceived(fromIp, data)
             val text = String(data)
             println("messageReceive $text")
         }
@@ -42,7 +50,9 @@ class ByteHole {
     private lateinit var broadcastReceiver: UDPReceiver
     private lateinit var messageReceiver: UDPReceiver
 
-    private val udpSender = UDPSender()
+    open val handler: IHandler by lazy { SimpleHandler().also { it.start() } }
+
+    private val udpSender by lazy { UDPSender() }
 
     private val byteHoleId = UUID.randomUUID().toString()
 
@@ -82,16 +92,19 @@ class ByteHole {
         if (!broadcastReceiver.isReady || !messageReceiver.isReady) {
             return
         }
-        for (port in BROADCAST_PREPARE_PORTS) {
-            udpSender.send(
-                BROADCAST_IP, port,
-                hi2All(byteHoleId, broadcastReceiver.port, messageReceiver.port)
-            )
+        handler.post {
+            for (port in BROADCAST_PREPARE_PORTS) {
+                udpSender.send(
+                    BROADCAST_IP, port,
+                    hi2All(byteHoleId, broadcastReceiver.port, messageReceiver.port)
+                )
+            }
         }
+
         isReady = true
     }
 
-    private fun dispatchReceive(ip: String, data: ByteArray, handler: (ip: String, event: String, jsonObj: JSONObject) -> Unit) {
+    private fun dispatchReceive(ip: String, data: ByteArray, handler: (event: String, jsonObj: JSONObject) -> Unit) {
         val text = String(data)
         val jsonObj = JSONObject.parseObject(text)
         val byteHoleId = jsonObj.getString("byteHoleId")
@@ -99,7 +112,7 @@ class ByteHole {
             return
         }
         val event = jsonObj.getString("event")
-        handler.invoke(ip, event, jsonObj)
+        handler.invoke(event, jsonObj)
     }
 
 }

@@ -1,8 +1,11 @@
 package com.github.bytehole.channel
 
 import org.junit.jupiter.api.Test
+import com.github.bytehole.channel.handler.SimpleHandler
 
 class TestUDPReceiver {
+
+    private val handler = SimpleHandler()
 
     @Test
     fun testListen() {
@@ -13,7 +16,7 @@ class TestUDPReceiver {
                 sender.send("255.255.255.255", 8888, "testListen -->")
             }
 
-            override fun onReceive(ip: String, data: ByteArray) {
+            override fun onReceive(fromIp: String, data: ByteArray) {
                 println(String(data))
             }
         })
@@ -26,7 +29,7 @@ class TestUDPReceiver {
 
             }
 
-            override fun onReceive(ip: String, data: ByteArray) {
+            override fun onReceive(fromIp: String, data: ByteArray) {
             }
         }
 

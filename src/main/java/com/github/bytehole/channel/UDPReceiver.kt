@@ -71,7 +71,7 @@ class UDPReceiver(val port: Int, private val executor: Executor? = null, val buf
 
     interface OnReceiveListener {
         fun onReady()
-        fun onReceive(ip: String, data: ByteArray)
+        fun onReceive(fromIp: String, data: ByteArray)
     }
 
 }
