@@ -3,8 +3,10 @@ package com.github.bytehole.channel
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
-class UDPSender {
+class UDPSender(private val executor: Executor = Executors.newSingleThreadExecutor()) {
 
     var isOpen = false
         private set
@@ -20,7 +22,10 @@ class UDPSender {
     }
 
     fun send(ip: String, port: Int, message: String) {
-        send(ip, port, message.toByteArray())
+        val task = Runnable {
+            send(ip, port, message.toByteArray())
+        }
+        executor.execute(task)
     }
 
     fun close() {

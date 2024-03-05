@@ -4,10 +4,13 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.util.concurrent.Executor
 
-class UDPReceiver(private val port: Int, private val executor: Executor? = null, val bufferSize: Int = 1024) {
+class UDPReceiver(val port: Int, private val executor: Executor? = null, val bufferSize: Int = 1024) {
 
     @Volatile
     var isListening = false
+        private set
+
+    var isReady = false
         private set
 
     private var receiveListener: OnReceiveListener? = null
@@ -16,6 +19,10 @@ class UDPReceiver(private val port: Int, private val executor: Executor? = null,
         while (isListening) {
             val bytes = ByteArray(bufferSize)
             val packet = DatagramPacket(bytes, bytes.size)
+            if (!isReady) {
+                isReady = true
+                receiveListener?.onReady()
+            }
             try {
                 socket.receive(packet)
             } catch (e: Exception) {
@@ -27,15 +34,22 @@ class UDPReceiver(private val port: Int, private val executor: Executor? = null,
             }
 
             val data = packet.data.copyOfRange(packet.offset, packet.offset + packet.length)
-            receiveListener?.onReceive(data)
+            receiveListener?.onReceive(packet.address.hostAddress, data)
         }
     }
 
-    private val socket by lazy { DatagramSocket(port) }
+    private lateinit var socket: DatagramSocket
 
-    fun listen(listener: OnReceiveListener) {
+    fun listen(listener: OnReceiveListener): Boolean {
         if (isListening) {
-            return
+            receiveListener = listener
+            return true
+        }
+        try {
+            socket = DatagramSocket(port)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
         }
         isListening = true
         receiveListener = listener
@@ -44,6 +58,7 @@ class UDPReceiver(private val port: Int, private val executor: Executor? = null,
         } else {
             executor.execute(task)
         }
+        return true
     }
 
     fun close() {
@@ -55,7 +70,8 @@ class UDPReceiver(private val port: Int, private val executor: Executor? = null,
     }
 
     interface OnReceiveListener {
-        fun onReceive(data: ByteArray)
+        fun onReady()
+        fun onReceive(ip: String, data: ByteArray)
     }
 
 }

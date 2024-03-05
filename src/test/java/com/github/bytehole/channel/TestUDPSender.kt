@@ -11,13 +11,6 @@ class TestUDPSender {
     @Test
     fun testSend() {
 
-        val channel = Channel(BROADCAST_IP, 8888)
-        channel.open()
-        channel.setOnReceiveListener {
-            println(it)
-            channel.close()
-        }
-
         val udpSender = UDPSender()
         udpSender.send(BROADCAST_IP, 8888, "TEST-AAA")
     }
