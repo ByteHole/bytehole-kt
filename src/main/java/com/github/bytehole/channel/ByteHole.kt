@@ -14,7 +14,7 @@ open class ByteHole {
         private val MESSAGE_PREPARE_PORTS = arrayOf(3211, 3185, 4312, 9855, 1413)
     }
 
-    val debugger: IDebugger? = null
+    open val debugger: IDebugger? = null
 
     private val broadcastListener = object : UDPReceiver.OnReceiveListener {
         override fun onReady() {
