@@ -13,7 +13,7 @@ class TestUDPReceiver {
                 sender.send("255.255.255.255", 8888, "testListen -->")
             }
 
-            override fun onReceive(data: ByteArray) {
+            override fun onReceive(ip: String, data: ByteArray) {
                 println(String(data))
             }
         })
@@ -26,7 +26,7 @@ class TestUDPReceiver {
 
             }
 
-            override fun onReceive(data: ByteArray) {
+            override fun onReceive(ip: String, data: ByteArray) {
             }
         }
 
