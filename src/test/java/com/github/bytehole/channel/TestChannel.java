@@ -1,3 +1,5 @@
+package com.github.bytehole.channel;
+
 import com.github.bytehole.channel.Channel;
 import org.junit.jupiter.api.Test;
 
