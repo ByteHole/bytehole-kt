@@ -85,8 +85,10 @@ open class ByteHole {
     }
 
     fun shutdown() {
-        for (port in BROADCAST_PREPARE_PORTS) {
-            udpSender.send(BROADCAST_IP, port, bye2All(byteHoleId))
+        handler.post {
+            for (port in BROADCAST_PREPARE_PORTS) {
+                udpSender.send(BROADCAST_IP, port, bye2All(byteHoleId))
+            }
         }
     }
 
