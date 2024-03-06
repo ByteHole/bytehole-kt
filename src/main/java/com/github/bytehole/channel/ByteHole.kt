@@ -24,7 +24,7 @@ open class ByteHole {
 
         override fun onReceive(fromIp: String, data: ByteArray) {
             debugger?.onBroadcastReceived(fromIp, data)
-            dispatchReceive(fromIp, data) { event, jsonObj ->
+            dispatchReceive(data) { event, jsonObj ->
                 when(event) {
                     EVENT_HI2A -> {
                         val messagePort = jsonObj.getIntValue("messagePort")
@@ -59,7 +59,7 @@ open class ByteHole {
     @Volatile
     private var isReady = false
 
-    fun setup() {
+    fun startup() {
         for (port in BROADCAST_PREPARE_PORTS) {
             val receiver = UDPReceiver(port)
             if (receiver.listen(broadcastListener)) {
@@ -84,6 +84,12 @@ open class ByteHole {
 
     }
 
+    fun shutdown() {
+        for (port in BROADCAST_PREPARE_PORTS) {
+            udpSender.send(BROADCAST_IP, port, bye2All(byteHoleId))
+        }
+    }
+
     @Synchronized
     private fun trySayHiToAll() {
         if (isReady) {
@@ -104,7 +110,7 @@ open class ByteHole {
         isReady = true
     }
 
-    private fun dispatchReceive(ip: String, data: ByteArray, handler: (event: String, jsonObj: JSONObject) -> Unit) {
+    private fun dispatchReceive(data: ByteArray, handler: (event: String, jsonObj: JSONObject) -> Unit) {
         val text = String(data)
         val jsonObj = JSONObject.parseObject(text)
         val byteHoleId = jsonObj.getString("byteHoleId")

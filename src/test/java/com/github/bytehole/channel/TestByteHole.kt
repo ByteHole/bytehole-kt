@@ -6,6 +6,6 @@ class TestByteHole {
     @Test
     fun testSetup() {
         val byteHole = ByteHole()
-        byteHole.setup()
+        byteHole.startup()
     }
 }
