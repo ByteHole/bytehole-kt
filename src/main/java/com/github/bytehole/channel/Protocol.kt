@@ -5,7 +5,7 @@ import java.util.UUID
 
 const val EVENT_HI2A = "hi2a"
 const val EVENT_HI2U = "hi2u"
-const val EVENT_BYE2A = "hi2a"
+const val EVENT_BYE2A = "bye2a"
 
 const val KEY_EVENT = "event"
 const val KEY_EVENT_ID = "eventId"
