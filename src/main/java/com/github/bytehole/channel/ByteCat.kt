@@ -1,11 +1,14 @@
 package com.github.bytehole.channel
 
 import com.alibaba.fastjson2.JSONObject
+import com.github.bytehole.channel.contact.Contact
+import com.github.bytehole.channel.contact.ContactBook
 import com.github.bytehole.channel.handler.IHandler
 import com.github.bytehole.channel.handler.SimpleHandler
+import com.github.bytehole.channel.platform.IPlatform
 import java.util.UUID
 
-open class ByteHole {
+open class ByteCat {
 
     companion object {
         private const val BROADCAST_IP = "255.255.255.255"
@@ -15,6 +18,15 @@ open class ByteHole {
     }
 
     open val debugger: IDebugger? = null
+
+    open val platform: IPlatform by lazy {
+        object : IPlatform {
+            override val systemUserName: String = System.getenv()["USER"] ?: "Unknown"
+            override val system: String = System.getProperty("os.name")
+        }
+    }
+
+    private val protocol by lazy { Protocol(platform) }
 
     private val broadcastListener = object : UDPReceiver.OnReceiveListener {
         override fun onReady() {
@@ -27,8 +39,21 @@ open class ByteHole {
             dispatchReceive(data) { event, jsonObj ->
                 when(event) {
                     EVENT_HI2A -> {
-                        val messagePort = jsonObj.getIntValue("messagePort")
-                        udpSender.send(fromIp, messagePort, hi2You(byteHoleId, broadcastReceiver.port, messageReceiver.port))
+
+                        val byteHoleId = jsonObj.getString(KEY_BYTE_HOLE_ID)
+                        val sysUserName = jsonObj.getString(KEY_SYS_USER_NAME)
+                        val osName = jsonObj.getString(KEY_OS_NAME)
+
+                        val broadcastPort = jsonObj.getIntValue(KEY_BROADCAST_PORT)
+                        val messagePort = jsonObj.getIntValue(KEY_MESSAGE_PORT)
+
+                        contactBook.addContact(byteHoleId, sysUserName, osName, fromIp, broadcastPort, messagePort)
+
+                        udpSender.send(fromIp, messagePort, protocol.hi2You(byteHoleId, broadcastReceiver.port, messageReceiver.port))
+                    }
+                    EVENT_BYE2A -> {
+                        val byteHoleId = jsonObj.getString(KEY_BYTE_HOLE_ID)
+                        contactBook.removeContact(byteHoleId)
                     }
                 }
             }
@@ -59,6 +84,15 @@ open class ByteHole {
     @Volatile
     private var isReady = false
 
+    private val contactCallback = object : ContactBook.Callback {
+        override fun onContactAdd(contact: Contact) {
+        }
+
+        override fun onContactRemove(contact: Contact) {
+        }
+    }
+    private val contactBook = ContactBook()
+
     fun startup() {
         for (port in BROADCAST_PREPARE_PORTS) {
             val receiver = UDPReceiver(port)
@@ -81,14 +115,14 @@ open class ByteHole {
         if (!::broadcastReceiver.isInitialized || !::messageReceiver.isInitialized) {
             throw IllegalStateException("No legal ports available.")
         }
-
     }
 
     fun shutdown() {
         handler.post {
             for (port in BROADCAST_PREPARE_PORTS) {
-                udpSender.send(BROADCAST_IP, port, bye2All(byteHoleId))
+                udpSender.send(BROADCAST_IP, port, protocol.bye2All(byteHoleId))
             }
+            contactBook.unregisterCallback(contactCallback)
         }
     }
 
@@ -101,10 +135,11 @@ open class ByteHole {
             return
         }
         handler.post {
+            contactBook.registerCallback(contactCallback)
             for (port in BROADCAST_PREPARE_PORTS) {
                 udpSender.send(
                     BROADCAST_IP, port,
-                    hi2All(byteHoleId, broadcastReceiver.port, messageReceiver.port)
+                    protocol.hi2All(byteHoleId, broadcastReceiver.port, messageReceiver.port)
                 )
             }
         }

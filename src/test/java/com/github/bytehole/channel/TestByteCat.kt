@@ -2,10 +2,10 @@ package com.github.bytehole.channel
 
 import org.junit.jupiter.api.Test
 
-class TestByteHole {
+class TestByteCat {
     @Test
     fun testSetup() {
-        val byteHole = ByteHole()
-        byteHole.startup()
+        val byteCat = ByteCat()
+        byteCat.startup()
     }
 }

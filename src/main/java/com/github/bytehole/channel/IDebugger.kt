@@ -1,5 +1,7 @@
 package com.github.bytehole.channel
 
+import com.github.bytehole.channel.contact.Contact
+
 interface IDebugger {
 
     fun onBroadcastReady()
@@ -7,5 +9,8 @@ interface IDebugger {
 
     fun onMessageReady()
     fun onMessageReceived(fromIp: String, data: ByteArray)
+
+    fun onContactAdd(contact: Contact)
+    fun onContactRemove(contact: Contact)
 
 }
