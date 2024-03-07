@@ -143,6 +143,9 @@ open class ByteCat {
         if (isReady) {
             return
         }
+        if (!::broadcastReceiver.isInitialized || !::messageReceiver.isInitialized) {
+            return
+        }
         if (!broadcastReceiver.isReady || !messageReceiver.isReady) {
             return
         }
