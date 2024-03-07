@@ -98,9 +98,11 @@ open class ByteCat {
 
     private val contactCallback = object : ContactBook.Callback {
         override fun onContactAdd(contact: Contact) {
+            debugger?.onContactAdd(contact)
         }
 
         override fun onContactRemove(contact: Contact) {
+            debugger?.onContactRemove(contact)
         }
     }
     private val contactBook = ContactBook()
