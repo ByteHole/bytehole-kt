@@ -67,8 +67,20 @@ open class ByteCat {
 
         override fun onReceive(fromIp: String, data: ByteArray) {
             debugger?.onMessageReceived(fromIp, data)
-            val text = String(data)
-            println("messageReceive $text")
+            dispatchReceive(data) {event, jsonObj ->
+                when(event) {
+                    EVENT_HI2U -> {
+                        val byteHoleId = jsonObj.getString(KEY_BYTE_HOLE_ID)
+                        val sysUserName = jsonObj.getString(KEY_SYS_USER_NAME)
+                        val osName = jsonObj.getString(KEY_OS_NAME)
+
+                        val broadcastPort = jsonObj.getIntValue(KEY_BROADCAST_PORT)
+                        val messagePort = jsonObj.getIntValue(KEY_MESSAGE_PORT)
+
+                        contactBook.addContact(byteHoleId, sysUserName, osName, fromIp, broadcastPort, messagePort)
+                    }
+                }
+            }
         }
     }
 
